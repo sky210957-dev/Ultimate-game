@@ -23,14 +23,12 @@ h1 { font-size:1.7rem; font-weight:800; background:linear-gradient(135deg,#facc1
 .status { background:#16182e; padding:8px 18px; border-radius:30px; display:inline-block; margin:8px 0 14px; font-weight:600; color:#cdc8ff; border:1px solid #3a3d62; min-height:36px; }
 .score { font-size:1.15rem; font-weight:700; color:#facc15; background:#1a1c38; padding:8px 20px; border-radius:30px; display:inline-block; margin-bottom:12px; }
 .board { display:grid; margin:0 auto; gap:6px; }
-
 .xo-board { grid-template-columns:repeat(3, 90px); }
 .xo-board .cell { aspect-ratio:1/1; background:#22243e; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:2.6rem; font-weight:800; cursor:pointer; user-select:none; box-shadow:0 6px 0 #0b0c1e; border:1px solid #3e4166; transition:.15s; }
 .xo-board .cell:hover:not(.taken) { background:#2c2f50; }
 .xo-board .cell.taken { cursor:default; }
 .xo-board .cell.win { background:#2b8c5e; box-shadow:0 0 20px #4bc98c; animation:pop .3s; }
 @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.1)} 100%{transform:scale(1)} }
-
 .bs-wrap { display:flex; gap:24px; justify-content:center; flex-wrap:wrap; }
 .bs-board { grid-template-columns:repeat(7, 40px); }
 .bs-board .cell { aspect-ratio:1/1; background:#1a2d4a; border-radius:4px; cursor:pointer; border:1px solid #2e4668; position:relative; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
@@ -42,7 +40,6 @@ h1 { font-size:1.7rem; font-weight:800; background:linear-gradient(135deg,#facc1
 .bs-board .cell.miss::after { content:'·'; color:#6a7a9a; font-size:2rem; line-height:1; }
 .bs-board .cell.preview { background:#2b8c5e !important; opacity:0.6; }
 .bs-board .cell.invalid { background:#7a2020 !important; opacity:0.6; }
-
 .c4-board { display:grid; grid-template-columns:repeat(7, 54px); gap:6px; background:linear-gradient(180deg,#2563eb,#1e40af); padding:12px; border-radius:16px; margin:0 auto; width:fit-content; box-shadow:inset 0 4px 12px rgba(0,0,0,0.5); }
 .c4-board .cell { aspect-ratio:1/1; background:#0b0c1e; border-radius:50%; cursor:pointer; border:2px solid #1a1c38; position:relative; overflow:hidden; transition:.2s; }
 .c4-board .cell:hover:not(.red):not(.yellow) { background:#1a1c38; }
@@ -50,7 +47,6 @@ h1 { font-size:1.7rem; font-weight:800; background:linear-gradient(135deg,#facc1
 .c4-board .cell.yellow { background:radial-gradient(circle at 35% 30%, #fde047, #eab308); box-shadow:inset -3px -3px 8px rgba(0,0,0,0.4); }
 .c4-board .cell.win { animation:pulse 0.5s infinite; }
 @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.08);} }
-
 .mem-board { display:grid; grid-template-columns:repeat(4, 80px); gap:10px; justify-content:center; margin:0 auto; perspective:1000px; }
 .mem-board .card { aspect-ratio:1/1; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:2rem; cursor:pointer; user-select:none; transition:.4s; transform-style:preserve-3d; position:relative; }
 .mem-board .card .face { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; border-radius:16px; backface-visibility:hidden; }
@@ -58,7 +54,6 @@ h1 { font-size:1.7rem; font-weight:800; background:linear-gradient(135deg,#facc1
 .mem-board .card .front { background:#3f3f72; border:1px solid #6d5dfc; transform:rotateY(180deg); }
 .mem-board .card.flipped { transform:rotateY(180deg); }
 .mem-board .card.matched .front { background:#2b8c5e; border-color:#6ae2a0; }
-
 .rps-choices { display:flex; gap:20px; justify-content:center; margin:14px 0; }
 .rps-btn { background:#262a4a; border:2px solid #555a8a; border-radius:50%; width:100px; height:100px; font-size:2.8rem; cursor:pointer; transition:.2s; color:#fff; }
 .rps-btn:hover { transform:translateY(-3px) scale(1.05); box-shadow:0 8px 20px rgba(109,93,252,0.4); }
@@ -67,7 +62,6 @@ h1 { font-size:1.7rem; font-weight:800; background:linear-gradient(135deg,#facc1
 .rps-history span { background:#1a1c38; padding:4px 10px; border-radius:12px; font-size:0.85rem; border:1px solid #3a3d62; }
 .rps-history span.win { background:#2b8c5e; }
 .rps-history span.loss { background:#7a2020; }
-
 .checker-board { grid-template-columns:repeat(8, 52px); background:#6b4423; padding:8px; border-radius:12px; width:fit-content; margin:0 auto; box-shadow:0 8px 24px rgba(0,0,0,0.5); }
 .checker-board .cell { aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
 .checker-board .cell.dark { background:#3a2416; }
@@ -79,7 +73,6 @@ h1 { font-size:1.7rem; font-weight:800; background:linear-gradient(135deg,#facc1
 .checker-board .cell.selected { box-shadow:inset 0 0 0 4px #facc15; }
 .checker-board .cell.valid { box-shadow:inset 0 0 0 4px #22c55e; }
 .checker-board .cell.valid::after { content:''; width:20%; height:20%; border-radius:50%; background:#22c55e; position:absolute; opacity:0.7; }
-
 .chess-board { grid-template-columns:repeat(8, 60px); background:#6b4423; padding:8px; border-radius:12px; width:fit-content; margin:0 auto; box-shadow:0 8px 24px rgba(0,0,0,0.5); }
 .chess-board .cell { aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; font-size:2.4rem; cursor:pointer; user-select:none; position:relative; }
 .chess-board .cell.light { background:#f0d9b5; }
@@ -87,7 +80,6 @@ h1 { font-size:1.7rem; font-weight:800; background:linear-gradient(135deg,#facc1
 .chess-board .cell.selected { box-shadow:inset 0 0 0 4px #facc15; }
 .chess-board .cell.valid { box-shadow:inset 0 0 0 4px #22c55e; }
 .chess-board .cell.check { background:#dc2626 !important; }
-
 .sudoku-wrap { display:flex; flex-direction:column; align-items:center; gap:16px; }
 .sudoku-board { display:grid; grid-template-columns:repeat(9, 44px); background:#0b0c1e; padding:6px; border-radius:14px; border:2px solid #3a3d62; width:fit-content; }
 .sudoku-board .cell { aspect-ratio:1/1; background:#1a1c38; display:flex; align-items:center; justify-content:center; font-size:1.3rem; font-weight:700; color:#a78bfa; cursor:pointer; user-select:none; border-right:1px solid #2a2d4a; border-bottom:1px solid #2a2d4a; transition:.1s; position:relative; }
@@ -104,7 +96,6 @@ h1 { font-size:1.7rem; font-weight:800; background:linear-gradient(135deg,#facc1
 .sudoku-pad button.erase { background:#7a2020; border-color:#ef4444; }
 .sudoku-pad button .count { position:absolute; top:2px; right:4px; font-size:0.55rem; color:#888; }
 .sudoku-pad button.done { opacity:0.4; }
-
 .g2048-board { display:grid; grid-template-columns:repeat(4, 90px); gap:10px; background:#1a1c38; padding:12px; border-radius:16px; margin:0 auto; width:fit-content; }
 .g2048-board .tile { aspect-ratio:1/1; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:800; color:#fff; background:#2a2d4a; transition:all .12s ease; animation:tileAppear 0.15s ease; }
 @keyframes tileAppear { from{transform:scale(0.5);opacity:0.5;} to{transform:scale(1);opacity:1;} }
@@ -124,7 +115,6 @@ h1 { font-size:1.7rem; font-weight:800; background:linear-gradient(135deg,#facc1
 .g2048-row { display:flex; gap:6px; }
 .g2048-arrow { background:#262a4a; border:1px solid #555a8a; color:#fff; width:50px; height:50px; border-radius:12px; font-size:1.2rem; cursor:pointer; transition:.15s; }
 .g2048-arrow:hover { background:#3a3d62; }
-
 .bb-wrap { display:flex; flex-direction:column; gap:16px; align-items:center; }
 .bb-grid { display:grid; grid-template-columns:repeat(8, 44px); gap:3px; background:#1a1c38; padding:6px; border-radius:12px; touch-action:none; }
 .bb-grid .cell { aspect-ratio:1/1; background:#0b0c1e; border-radius:6px; transition:.2s; }
@@ -137,9 +127,7 @@ h1 { font-size:1.7rem; font-weight:800; background:linear-gradient(135deg,#facc1
 .bb-tray .piece { display:grid; gap:2px; cursor:grab; transition:.2s; }
 .bb-tray .piece.selected { outline:3px solid #facc15; border-radius:8px; }
 .bb-tray .piece .sq { width:26px; height:26px; border-radius:5px; }
-
 #fn-canvas { display:block; margin:0 auto; cursor:crosshair; touch-action:none; border-radius:20px; }
-
 @media (max-width:700px) {
   .xo-board { grid-template-columns:repeat(3, 70px); }
   .bs-board { grid-template-columns:repeat(7, 30px); }
