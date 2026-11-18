@@ -1,29 +1,20 @@
 # 🎮 Multi-Game Hub Ultimate
 
-เว็บเกมรวม **11 เกม** ที่อัปเกรดให้สมจริงเหมือนเกมระดับมืออาชีพ
+เว็บเกมรวม 11 เกม — **ดับเบิลคลิก index.html เล่นได้ทันที** (ไม่ต้องมี server)
 
 ## เกมที่มี
+XO, Battleship, Connect4, Memory, RPS, Checkers, Chess, Sudoku, 2048, Block Blast, Fruit Ninja
 
-| เกม | โหมด | ฟีเจอร์เด่น |
-|-----|------|-------------|
-| Tic-Tac-Toe | บอท/เพื่อน | Minimax + Alpha-Beta |
-| Battleship | บอท/เพื่อน | ลากวางเรือ + AI Probability |
-| Connect 4 | บอท/เพื่อน | Minimax Depth 4 |
-| Memory Match | บอท/เพื่อน | 3D Flip + AI Memory |
-| Rock Paper Scissors | บอท/เพื่อน | Markov Chain |
-| Checkers | บอท/เพื่อน | บังคับ Multi-jump + Minimax |
-| Chess | บอท/เพื่อน | 8x8 มาตรฐาน + Castling + En Passant |
-| Sudoku | เดี่ยว | Pencil Mode + ไฮไลต์ |
-| 2048 | เดี่ยว | Undo + Animation |
-| Block Blast | เก็บแต้ม | Preview + Combo Multiplier |
-| Fruit Ninja | เก็บแต้ม | ปาดฟัน + Combo |
+## วิธีเล่น
+1. วางไฟล์ `index.html`, `style.css`, `main.js` ไว้โฟลเดอร์เดียวกัน
+2. ดับเบิลคลิก `index.html` → เปิดในเบราว์เซอร์ → เล่นได้เลย ✅
 
-## วิธีรัน
+**ถ้าเล่นไม่ได้:** เปิด Console (F12) → ดูสีแดง → แจ้ง error ที่ขึ้นมา
 
-### ❗ สำคัญ: ต้องรันผ่าน local server (ไม่ใช่ double-click)
-เพราะใช้ ES Modules ซึ่งเบราว์เซอร์บล็อก `file://`
+## Deploy GitHub Pages (ถ้าต้องการ)
+1. อัปโหลด 3 ไฟล์ขึ้น repo
+2. Settings → Pages → Branch: main / root → Save
+3. เปิด `https://<USERNAME>.github.io/<REPO>/`
 
-**วิธีที่ 1: Python**
-```bash
-python -m http.server 8000
-# เปิด http://localhost:8000
+## License
+MIT
