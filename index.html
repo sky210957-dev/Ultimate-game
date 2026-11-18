@@ -3,14 +3,23 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>🎮 Multi-Game Hub Ultimate</title>
+<title>🎮 Multi-Game Hub Ultimate v2</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div id="error-bar" style="display:none;background:#dc2626;color:#fff;padding:12px;text-align:center;font-weight:700;font-family:monospace;"></div>
-<div class="app">
+<!-- Debug bar -->
+<div id="debug-bar" style="position:fixed;top:0;left:0;right:0;background:#0f172a;color:#22d3ee;padding:6px 14px;font-family:monospace;font-size:12px;z-index:9999;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center;">
+  <span id="debug-status">⏳ กำลังโหลด...</span>
+  <span>
+    <button onclick="location.reload()" style="background:#334155;color:#e2e8f0;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;">🔄 Reload</button>
+    <button onclick="toggleDebug()" style="background:#334155;color:#e2e8f0;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;">🐛 Toggle</button>
+  </span>
+</div>
+<div id="error-bar" style="display:none;position:fixed;top:32px;left:0;right:0;background:#dc2626;color:#fff;padding:10px;text-align:center;font-weight:700;font-family:monospace;font-size:13px;z-index:9998;"></div>
+
+<div class="app" style="margin-top:60px;">
   <header>
-    <h1>🎮 Multi-Game Hub Ultimate</h1>
+    <h1>🎮 Multi-Game Hub v2</h1>
     <nav class="nav" id="nav"></nav>
   </header>
 
@@ -26,14 +35,15 @@
   </section>
 
   <section class="panel" id="panel-battleship">
-    <h2 class="title">🚢 Battleship</h2>
+    <h2 class="title">🚢 Battleship (6x6)</h2>
     <div class="mode-bar">
       <select id="bs-mode"><option value="bot">เล่นกับบอท</option><option value="friend">เล่นกับเพื่อน</option></select>
       <select id="bs-diff"><option value="easy">ง่าย</option><option value="medium" selected>กลาง</option><option value="hard">ยาก</option></select>
-      <button class="btn" id="bs-rotate" disabled>🔄 หมุนแนวนอน</button>
+      <button class="btn" id="bs-rotate">🔄 หมุน</button>
+      <button class="btn" id="bs-auto">🎲 วางอัตโนมัติ</button>
       <button class="btn" id="bs-reset">เริ่มใหม่</button>
     </div>
-    <div class="status" id="bs-status">วางเรือของคุณ</div>
+    <div class="status" id="bs-status">วางเรือ Carrier (ยาว 4)</div>
     <div class="bs-wrap">
       <div><p>เรือคุณ</p><div class="board bs-board" id="bs-player"></div></div>
       <div><p>เรือศัตรู</p><div class="board bs-board" id="bs-enemy"></div></div>
@@ -91,7 +101,7 @@
   </section>
 
   <section class="panel" id="panel-chess">
-    <h2 class="title">♟️ Chess (มาตรฐาน 8x8)</h2>
+    <h2 class="title">♟️ Chess</h2>
     <div class="mode-bar">
       <select id="ch-mode"><option value="bot">เล่นกับบอท</option><option value="friend">เล่นกับเพื่อน</option></select>
       <select id="ch-diff"><option value="easy">ง่าย</option><option value="medium" selected>กลาง</option><option value="hard">ยาก</option></select>
@@ -144,14 +154,14 @@
       <div class="bb-grid" id="bb-grid"></div>
       <div class="bb-tray" id="bb-tray"></div>
     </div>
-    <div class="status" id="bb-status">เลือกชิ้น → คลิกช่องว่างเพื่อวาง</div>
+    <div class="status" id="bb-status">แตะชิ้น → แตะช่องว่างเพื่อวาง</div>
   </section>
 
   <section class="panel" id="panel-fruitninja">
     <h2 class="title">🍉 Fruit Ninja</h2>
     <div class="mode-bar"><button class="btn" id="fn-reset">เริ่มใหม่</button></div>
     <div class="score" id="fn-score">คะแนน: 0 | เวลา: 60s</div>
-    <canvas id="fn-canvas" width="700" height="420" style="width:100%;max-width:700px;background:#111;"></canvas>
+    <canvas id="fn-canvas" width="700" height="420" style="width:100%;max-width:700px;background:#111;border-radius:16px;"></canvas>
     <div class="status" id="fn-status">ปาดนิ้ว/ลากเมาส์ฟันผลไม้ หลีกเลี่ยงระเบิด 💣</div>
   </section>
 </div>
