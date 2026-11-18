@@ -1,82 +1,57 @@
-const N = 9;
-const BOX = 3;
+import { $, shuffle } from '../utils.js';
+
+const N = 9, BOX = 3;
 
 export function initSudoku() {
-  const boardEl = document.getElementById('sd-board');
-  const padEl = document.getElementById('sd-pad');
-  const statusEl = document.getElementById('sd-status');
-  const diffEl = document.getElementById('sd-diff');
-  const resetEl = document.getElementById('sd-reset');
-  const hintEl = document.getElementById('sd-hint');
-  const checkEl = document.getElementById('sd-check');
-
-  let solution = [], puzzle = [], userGrid = [], givenMask = [], selected = null;
+  const boardEl = $('sd-board'), padEl = $('sd-pad'), statusEl = $('sd-status');
+  const diffEl = $('sd-diff'), resetEl = $('sd-reset'), hintEl = $('sd-hint'), checkEl = $('sd-check');
+  const pencilEl = $('sd-pencil');
+  let solution = [], userGrid = [], givenMask = [], pencilGrid = [], selected = null;
+  let pencilMode = false;
 
   function emptyGrid() { return Array.from({length:N}, () => Array(N).fill(0)); }
-
   function isValid(grid, r, c, n) {
-    for (let i = 0; i < N; i++) {
-      if (grid[r][i] === n) return false;
-      if (grid[i][c] === n) return false;
-    }
-    const br = Math.floor(r/BOX) * BOX, bc = Math.floor(c/BOX) * BOX;
-    for (let i = 0; i < BOX; i++)
-      for (let j = 0; j < BOX; j++)
-        if (grid[br+i][bc+j] === n) return false;
+    for (let i = 0; i < N; i++) if (grid[r][i] === n || grid[i][c] === n) return false;
+    const br = Math.floor(r/BOX)*BOX, bc = Math.floor(c/BOX)*BOX;
+    for (let i = 0; i < BOX; i++) for (let j = 0; j < BOX; j++) if (grid[br+i][bc+j] === n) return false;
     return true;
   }
-
   function solve(grid) {
-    for (let r = 0; r < N; r++) {
-      for (let c = 0; c < N; c++) {
-        if (grid[r][c] === 0) {
-          const nums = shuffle([1,2,3,4,5,6,7,8,9]);
-          for (const n of nums) {
-            if (isValid(grid, r, c, n)) {
-              grid[r][c] = n;
-              if (solve(grid)) return true;
-              grid[r][c] = 0;
-            }
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (grid[r][c] === 0) {
+        for (const n of shuffle([1,2,3,4,5,6,7,8,9])) {
+          if (isValid(grid, r, c, n)) {
+            grid[r][c] = n;
+            if (solve(grid)) return true;
+            grid[r][c] = 0;
           }
-          return false;
         }
+        return false;
       }
     }
     return true;
   }
-
-  function shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
-
   function countSolutions(grid, limit = 2) {
     let count = 0;
-    function backtrack() {
-      for (let r = 0; r < N; r++) {
-        for (let c = 0; c < N; c++) {
-          if (grid[r][c] === 0) {
-            for (let n = 1; n <= 9; n++) {
-              if (isValid(grid, r, c, n)) {
-                grid[r][c] = n;
-                backtrack();
-                grid[r][c] = 0;
-                if (count >= limit) return;
-              }
+    function bt() {
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+        if (grid[r][c] === 0) {
+          for (let n = 1; n <= 9; n++) {
+            if (isValid(grid, r, c, n)) {
+              grid[r][c] = n;
+              bt();
+              grid[r][c] = 0;
+              if (count >= limit) return;
             }
-            return;
           }
+          return;
         }
       }
       count++;
     }
-    backtrack();
+    bt();
     return count;
   }
-
   function generate(diff) {
     const full = emptyGrid();
     solve(full);
@@ -90,40 +65,52 @@ export function initSudoku() {
       if (removed >= removeCount) break;
       const backup = p[r][c];
       p[r][c] = 0;
-      const copy = p.map(row => [...row]);
-      if (countSolutions(copy, 2) !== 1) p[r][c] = backup;
+      if (countSolutions(p.map(row => [...row]), 2) !== 1) p[r][c] = backup;
       else removed++;
     }
     return { puzzle: p, solution: full };
   }
-
   function render() {
     boardEl.innerHTML = '';
-    for (let r = 0; r < N; r++) {
-      for (let c = 0; c < N; c++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        if (givenMask[r][c]) cell.classList.add('given');
-        if (selected && selected.r === r && selected.c === c) cell.classList.add('selected');
-        const v = userGrid[r][c];
-        if (v) {
-          cell.textContent = v;
-          if (!givenMask[r][c]) cell.classList.add('user');
-        }
-        cell.addEventListener('click', () => {
-          selected = { r, c };
-          render();
-        });
-        boardEl.appendChild(cell);
+    const selVal = selected ? userGrid[selected.r][selected.c] : 0;
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      if (givenMask[r][c]) cell.classList.add('given');
+      if (selected) {
+        if (selected.r === r && selected.c === c) cell.classList.add('selected');
+        else if (selected.r === r || selected.c === c || (Math.floor(selected.r/3) === Math.floor(r/3) && Math.floor(selected.c/3) === Math.floor(c/3)))
+          cell.classList.add('related');
+        if (selVal && userGrid[r][c] === selVal && !(selected.r === r && selected.c === c))
+          cell.classList.add('same-value');
       }
+      const v = userGrid[r][c];
+      if (v) {
+        cell.textContent = v;
+        if (!givenMask[r][c]) cell.classList.add('user');
+        if (!givenMask[r][c] && v !== solution[r][c]) cell.classList.add('error');
+      } else if (pencilGrid[r][c] && pencilGrid[r][c].size) {
+        const pencil = document.createElement('div');
+        pencil.className = 'pencil';
+        for (let n = 1; n <= 9; n++) {
+          const span = document.createElement('span');
+          span.textContent = pencilGrid[r][c].has(n) ? n : '';
+          pencil.appendChild(span);
+        }
+        cell.appendChild(pencil);
+      }
+      cell.addEventListener('click', () => { selected = { r, c }; render(); });
+      boardEl.appendChild(cell);
     }
   }
-
   function renderPad() {
     padEl.innerHTML = '';
     for (let n = 1; n <= 9; n++) {
       const b = document.createElement('button');
-      b.textContent = n;
+      let count = 0;
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (userGrid[r][c] === n) count++;
+      b.innerHTML = `${n}<span class="count">${Math.max(0, 9 - count)}</span>`;
+      if (count >= 9) b.classList.add('done');
       b.addEventListener('click', () => placeNumber(n));
       padEl.appendChild(b);
     }
@@ -133,68 +120,67 @@ export function initSudoku() {
     erase.addEventListener('click', () => placeNumber(0));
     padEl.appendChild(erase);
   }
-
   function placeNumber(n) {
     if (!selected) { statusEl.textContent = 'เลือกช่องก่อน'; return; }
     const { r, c } = selected;
     if (givenMask[r][c]) { statusEl.textContent = 'ช่องนี้เป็นตัวเลขตั้งต้น'; return; }
-    userGrid[r][c] = n;
-    render();
-    if (n !== 0 && n !== solution[r][c]) statusEl.textContent = '❌ ตัวเลขนี้ผิด';
-    else statusEl.textContent = 'ใส่แล้ว';
+    if (pencilMode && n !== 0) {
+      if (!pencilGrid[r][c]) pencilGrid[r][c] = new Set();
+      if (pencilGrid[r][c].has(n)) pencilGrid[r][c].delete(n);
+      else pencilGrid[r][c].add(n);
+    } else {
+      userGrid[r][c] = n;
+      pencilGrid[r][c] = null;
+    }
+    render(); renderPad();
     if (isComplete()) statusEl.textContent = '🎉 ยินดีด้วย! คุณแก้ Sudoku สำเร็จ!';
+    else statusEl.textContent = 'ใส่แล้ว';
   }
-
   function isComplete() {
-    for (let r = 0; r < N; r++)
-      for (let c = 0; c < N; c++)
-        if (userGrid[r][c] !== solution[r][c]) return false;
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (userGrid[r][c] !== solution[r][c]) return false;
     return true;
   }
-
   function hint() {
     const empties = [];
-    for (let r = 0; r < N; r++)
-      for (let c = 0; c < N; c++)
-        if (!givenMask[r][c] && userGrid[r][c] !== solution[r][c]) empties.push([r, c]);
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!givenMask[r][c] && userGrid[r][c] !== solution[r][c]) empties.push([r, c]);
     if (!empties.length) { statusEl.textContent = 'ทำเสร็จแล้ว!'; return; }
     const [r, c] = empties[Math.floor(Math.random() * empties.length)];
     userGrid[r][c] = solution[r][c];
+    pencilGrid[r][c] = null;
     selected = { r, c };
-    render();
+    render(); renderPad();
     statusEl.textContent = '💡 ใส่คำใบ้ให้ 1 ช่อง';
     if (isComplete()) statusEl.textContent = '🎉 ยินดีด้วย! คุณแก้ Sudoku สำเร็จ!';
   }
-
   function checkErrors() {
     let errors = 0, empty = 0;
-    for (let r = 0; r < N; r++) {
-      for (let c = 0; c < N; c++) {
-        if (givenMask[r][c]) continue;
-        if (userGrid[r][c] === 0) empty++;
-        else if (userGrid[r][c] !== solution[r][c]) errors++;
-      }
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (givenMask[r][c]) continue;
+      if (userGrid[r][c] === 0) empty++;
+      else if (userGrid[r][c] !== solution[r][c]) errors++;
     }
-    if (empty === 0 && errors === 0) statusEl.textContent = '🎉 ถูกต้องทั้งหมด!';
-    else if (errors > 0) statusEl.textContent = `❌ มีตัวเลขผิด ${errors} ช่อง, ว่าง ${empty} ช่อง`;
+    if (!errors && !empty) statusEl.textContent = '🎉 ถูกต้องทั้งหมด!';
+    else if (errors) statusEl.textContent = `❌ มีตัวเลขผิด ${errors} ช่อง, ว่าง ${empty} ช่อง`;
     else statusEl.textContent = `✅ ไม่มีตัวเลขผิด, เหลืออีก ${empty} ช่อง`;
+    render();
   }
-
   function newGame() {
     statusEl.textContent = 'กำลังสร้าง Sudoku...';
     setTimeout(() => {
-      const { puzzle: p, solution: s } = generate(diffEl.value);
+      const { puzzle, solution: s } = generate(diffEl.value);
       solution = s;
-      puzzle = p;
-      userGrid = p.map(row => [...row]);
-      givenMask = p.map(row => row.map(v => v !== 0));
+      userGrid = puzzle.map(row => [...row]);
+      givenMask = puzzle.map(row => row.map(v => v !== 0));
+      pencilGrid = Array.from({length:N}, () => Array(N).fill(null));
       selected = null;
-      render();
-      renderPad();
+      render(); renderPad();
       statusEl.textContent = 'เลือกช่องแล้วใส่ตัวเลข 1-9';
     }, 50);
   }
-
+  pencilEl.addEventListener('click', () => {
+    pencilMode = !pencilMode;
+    pencilEl.textContent = pencilMode ? '✏️ Pencil: เปิด' : '✏️ Pencil: ปิด';
+  });
   resetEl.addEventListener('click', newGame);
   hintEl.addEventListener('click', hint);
   checkEl.addEventListener('click', checkErrors);
