@@ -1,15 +1,37 @@
 /* ============================================================
-   MULTI-GAME HUB — main.js (classic script, ไม่ใช้ module)
+   MULTI-GAME HUB ULTIMATE v2 — main.js
+   แก้บั๊ก + เพิ่ม debug + try-catch แยกแต่ละเกม
    ============================================================ */
 
-// ---------- Error Handling ----------
-window.onerror = function(msg, src, line, col, err) {
-  const bar = document.getElementById('error-bar');
-  if (bar) {
-    bar.style.display = 'block';
-    bar.textContent = '⚠️ Error: ' + msg + ' (line ' + line + ')';
+// ---------- Debug System ----------
+const debugStatus = document.getElementById('debug-status');
+const errorBar = document.getElementById('error-bar');
+let debugVisible = true;
+
+window.toggleDebug = function() {
+  debugVisible = !debugVisible;
+  debugStatus.style.display = debugVisible ? 'inline' : 'none';
+};
+
+function setStatus(msg, isError = false) {
+  console.log('[Hub]', msg);
+  if (debugStatus) {
+    debugStatus.textContent = msg;
+    debugStatus.style.color = isError ? '#f87171' : '#22d3ee';
   }
-  console.error('[Multi-Game Hub]', msg, err);
+  if (isError && errorBar) {
+    errorBar.style.display = 'block';
+    errorBar.textContent = '⚠️ ' + msg;
+    setTimeout(() => { errorBar.style.display = 'none'; }, 5000);
+  }
+}
+
+window.onerror = function(msg, src, line, col, err) {
+  console.error('[Global Error]', msg, err);
+  if (errorBar) {
+    errorBar.style.display = 'block';
+    errorBar.textContent = '⚠️ ' + msg + ' (line ' + line + ')';
+  }
 };
 
 // ---------- Utils ----------
@@ -32,6 +54,7 @@ const GAMES = [
   { id:'blockblast', label:'🧱 Block Blast' },
   { id:'fruitninja', label:'🍉 Fruit Ninja' },
 ];
+
 (function buildNav(){
   const nav = $('nav');
   GAMES.forEach((g, i) => {
@@ -42,6 +65,7 @@ const GAMES = [
     b.addEventListener('click', () => {
       document.querySelectorAll('.nav-btn').forEach(x => x.classList.toggle('active', x.dataset.game === g.id));
       document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + g.id));
+      setStatus('เปิดเกม: ' + g.label);
     });
     nav.appendChild(b);
   });
@@ -52,10 +76,11 @@ const GAMES = [
 // XO
 // ============================================================
 function initXO() {
+  setStatus('กำลัง init XO...');
   const boardEl = $('xo-board'), statusEl = $('xo-status');
   const modeEl = $('xo-mode'), diffEl = $('xo-diff'), resetEl = $('xo-reset');
   const WIN = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-  let board, player, gameOver, winLine;
+  let board = Array(9).fill(''), player = 'X', gameOver = false, winLine = null;
 
   function render() {
     boardEl.innerHTML = '';
@@ -160,17 +185,19 @@ function initXO() {
   modeEl.addEventListener('change', reset);
   diffEl.addEventListener('change', reset);
   reset();
+  setStatus('✅ XO พร้อมเล่น');
 }
 
 // ============================================================
-// BATTLESHIP
+// BATTLESHIP (6x6)
 // ============================================================
 function initBattleship() {
+  setStatus('กำลัง init Battleship...');
   const playerEl = $('bs-player'), enemyEl = $('bs-enemy');
   const statusEl = $('bs-status'), modeEl = $('bs-mode'), diffEl = $('bs-diff');
-  const resetEl = $('bs-reset'), rotateEl = $('bs-rotate');
-  const SIZE = 7;
-  const SHIPS = [{len:5,name:'Carrier'},{len:4,name:'Battleship'},{len:3,name:'Cruiser'},{len:2,name:'Destroyer'}];
+  const resetEl = $('bs-reset'), rotateEl = $('bs-rotate'), autoEl = $('bs-auto');
+  const SIZE = 6;
+  const SHIPS = [{len:4,name:'Carrier'},{len:3,name:'Cruiser'},{len:2,name:'Destroyer'},{len:1,name:'Patrol'}];
   let playerBoard, enemyBoard, placeIdx, turn, gameOver, enemyShips, playerShips;
   let horizontal = true;
 
@@ -190,8 +217,18 @@ function initBattleship() {
       const r = Math.floor(Math.random() * SIZE), c = Math.floor(Math.random() * SIZE);
       if (!canPlace(board, r, c, len, horiz)) continue;
       for (let i = 0; i < len; i++) board[horiz ? r*SIZE+c+i : (r+i)*SIZE+c] = 1;
-      return;
+      return true;
     }
+    return false;
+  }
+  function autoPlaceAll() {
+    playerShips = newBoard();
+    SHIPS.forEach(s => placeShipRandom(playerShips, s.len));
+    placeIdx = SHIPS.length;
+    turn = 'player';
+    rotateEl.disabled = true;
+    statusEl.textContent = '🎯 ยิงเรือศัตรู!';
+    render();
   }
   function previewShip(idx) {
     if (placeIdx >= SHIPS.length) return;
@@ -347,16 +384,19 @@ function initBattleship() {
     horizontal = !horizontal;
     rotateEl.textContent = horizontal ? '🔄 หมุนแนวนอน' : '🔄 หมุนแนวตั้ง';
   });
+  autoEl.addEventListener('click', autoPlaceAll);
   resetEl.addEventListener('click', reset);
   modeEl.addEventListener('change', reset);
   diffEl.addEventListener('change', reset);
   reset();
+  setStatus('✅ Battleship พร้อมเล่น');
 }
 
 // ============================================================
 // CONNECT 4
 // ============================================================
 function initConnect4() {
+  setStatus('กำลัง init Connect4...');
   const boardEl = $('c4-board'), statusEl = $('c4-status');
   const modeEl = $('c4-mode'), diffEl = $('c4-diff'), resetEl = $('c4-reset');
   const ROWS = 6, COLS = 7;
@@ -505,12 +545,14 @@ function initConnect4() {
   modeEl.addEventListener('change', reset);
   diffEl.addEventListener('change', reset);
   reset();
+  setStatus('✅ Connect4 พร้อมเล่น');
 }
 
 // ============================================================
 // MEMORY
 // ============================================================
 function initMemory() {
+  setStatus('กำลัง init Memory...');
   const boardEl = $('mem-board'), statusEl = $('mem-status');
   const modeEl = $('mem-mode'), diffEl = $('mem-diff'), resetEl = $('mem-reset');
   const EMOJIS = ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦄','🐢'];
@@ -611,12 +653,14 @@ function initMemory() {
   modeEl.addEventListener('change', init);
   diffEl.addEventListener('change', init);
   init();
+  setStatus('✅ Memory พร้อมเล่น');
 }
 
 // ============================================================
 // RPS
 // ============================================================
 function initRPS() {
+  setStatus('กำลัง init RPS...');
   const scoreEl = $('rps-score'), statusEl = $('rps-status');
   const choicesEl = $('rps-choices'), historyEl = $('rps-history');
   const modeEl = $('rps-mode'), diffEl = $('rps-diff'), resetEl = $('rps-reset');
@@ -709,12 +753,14 @@ function initRPS() {
     statusEl.textContent = 'เลือกอาวุธ';
   });
   updateScore();
+  setStatus('✅ RPS พร้อมเล่น');
 }
 
 // ============================================================
-// CHECKER
+// CHECKERS
 // ============================================================
 function initChecker() {
+  setStatus('กำลัง init Checkers...');
   const boardEl = $('ck-board'), statusEl = $('ck-status');
   const modeEl = $('ck-mode'), diffEl = $('ck-diff'), resetEl = $('ck-reset');
   const N = 8;
@@ -841,46 +887,6 @@ function initChecker() {
     }
     return s;
   }
-  function minimax(b, depth, isMax, alpha, beta, color) {
-    if (depth === 0) return evaluate(b, color);
-    const moves = allMoves(b, isMax ? color : (color === 'red' ? 'black' : 'red'));
-    if (!moves.length) return isMax ? -1000 + depth : 1000 - depth;
-    if (isMax) {
-      let best = -Infinity;
-      for (const mv of moves) {
-        const nb = cloneBoard(b);
-        const p = nb[mv.r][mv.c];
-        nb[mv.r][mv.c] = null;
-        nb[mv.m.tr][mv.m.tc] = p;
-        if (mv.m.jump) nb[mv.m.cr][mv.m.cc] = null;
-        if (!p.king) {
-          if (p.color === 'red' && mv.m.tr === 0) p.king = true;
-          if (p.color === 'black' && mv.m.tr === N-1) p.king = true;
-        }
-        best = Math.max(best, minimax(nb, depth-1, false, alpha, beta, color));
-        alpha = Math.max(alpha, best);
-        if (beta <= alpha) break;
-      }
-      return best;
-    } else {
-      let best = Infinity;
-      for (const mv of moves) {
-        const nb = cloneBoard(b);
-        const p = nb[mv.r][mv.c];
-        nb[mv.r][mv.c] = null;
-        nb[mv.m.tr][mv.m.tc] = p;
-        if (mv.m.jump) nb[mv.m.cr][mv.m.cc] = null;
-        if (!p.king) {
-          if (p.color === 'red' && mv.m.tr === 0) p.king = true;
-          if (p.color === 'black' && mv.m.tr === N-1) p.king = true;
-        }
-        best = Math.min(best, minimax(nb, depth-1, true, alpha, beta, color));
-        beta = Math.min(beta, best);
-        if (beta <= alpha) break;
-      }
-      return best;
-    }
-  }
   function botMove() {
     if (gameOver) return;
     const diff = diffEl.value;
@@ -888,7 +894,7 @@ function initChecker() {
     if (!all.length) return;
     let choice;
     if (diff === 'easy') choice = randomChoice(all);
-    else if (diff === 'medium') {
+    else {
       const scored = all.map(mv => {
         let s = 0;
         if (mv.m.jump) s += 10;
@@ -896,19 +902,7 @@ function initChecker() {
         return { mv, s };
       });
       scored.sort((a,b) => b.s - a.s);
-      choice = Math.random() < 0.5 ? randomChoice(all) : scored[0].mv;
-    } else {
-      let best = -Infinity;
-      for (const mv of all) {
-        const nb = cloneBoard(board);
-        const p = nb[mv.r][mv.c];
-        nb[mv.r][mv.c] = null;
-        nb[mv.m.tr][mv.m.tc] = p;
-        if (mv.m.jump) nb[mv.m.cr][mv.m.cc] = null;
-        if (!p.king && p.color === 'black' && mv.m.tr === N-1) p.king = true;
-        const s = minimax(nb, 3, true, -Infinity, Infinity, 'black');
-        if (s > best) { best = s; choice = mv; }
-      }
+      choice = diff === 'medium' && Math.random() < 0.5 ? randomChoice(all) : scored[0].mv;
     }
     applyMove(choice.r, choice.c, choice.m);
   }
@@ -916,18 +910,19 @@ function initChecker() {
   modeEl.addEventListener('change', init);
   diffEl.addEventListener('change', init);
   init();
+  setStatus('✅ Checkers พร้อมเล่น');
 }
 
 // ============================================================
 // CHESS
 // ============================================================
 function initChess() {
+  setStatus('กำลัง init Chess...');
   const boardEl = $('ch-board'), statusEl = $('ch-status');
   const modeEl = $('ch-mode'), diffEl = $('ch-diff'), resetEl = $('ch-reset');
   const N = 8;
   const GLYPH = { 'wK':'♔','wQ':'♕','wR':'♖','wB':'♗','wN':'♘','wP':'♙','bK':'♚','bQ':'♛','bR':'♜','bB':'♝','bN':'♞','bP':'♟' };
-  let board, turn, selected, gameOver;
-  let castling, enPassant;
+  let board, turn, selected, gameOver, castling, enPassant;
 
   function init() {
     board = Array.from({length:N}, () => Array(N).fill(null));
@@ -1178,8 +1173,6 @@ function initChess() {
         const b = cloneBoard(board);
         b[mv.to.r][mv.to.c] = b[mv.fr][mv.fc];
         b[mv.fr][mv.fc] = null;
-        if (mv.to.castle === 'K') { b[mv.to.r][5] = b[mv.to.r][7]; b[mv.to.r][7] = null; }
-        if (mv.to.castle === 'Q') { b[mv.to.r][3] = b[mv.to.r][0]; b[mv.to.r][0] = null; }
         const s = minimaxChess(b, 2, -Infinity, Infinity, true);
         if (s > best) { best = s; choice = mv; }
       }
@@ -1190,12 +1183,14 @@ function initChess() {
   modeEl.addEventListener('change', init);
   diffEl.addEventListener('change', init);
   init();
+  setStatus('✅ Chess พร้อมเล่น');
 }
 
 // ============================================================
 // SUDOKU
 // ============================================================
 function initSudoku() {
+  setStatus('กำลัง init Sudoku...');
   const boardEl = $('sd-board'), padEl = $('sd-pad'), statusEl = $('sd-status');
   const diffEl = $('sd-diff'), resetEl = $('sd-reset'), hintEl = $('sd-hint'), checkEl = $('sd-check');
   const pencilEl = $('sd-pencil');
@@ -1253,7 +1248,7 @@ function initSudoku() {
     const cells = [];
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) cells.push([r, c]);
     shuffle(cells);
-    const removeCount = diff === 'easy' ? 40 : diff === 'medium' ? 50 : 56;
+    const removeCount = diff === 'easy' ? 35 : diff === 'medium' ? 45 : 52;
     let removed = 0;
     for (const [r, c] of cells) {
       if (removed >= removeCount) break;
@@ -1270,20 +1265,20 @@ function initSudoku() {
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
       const cell = document.createElement('div');
       cell.className = 'cell';
-      if (givenMask[r][c]) cell.classList.add('given');
+      if (givenMask[r] && givenMask[r][c]) cell.classList.add('given');
       if (selected) {
         if (selected.r === r && selected.c === c) cell.classList.add('selected');
         else if (selected.r === r || selected.c === c || (Math.floor(selected.r/3) === Math.floor(r/3) && Math.floor(selected.c/3) === Math.floor(c/3)))
           cell.classList.add('related');
-        if (selVal && userGrid[r][c] === selVal && !(selected.r === r && selected.c === c))
+        if (selVal && userGrid[r] && userGrid[r][c] === selVal && !(selected.r === r && selected.c === c))
           cell.classList.add('same-value');
       }
-      const v = userGrid[r][c];
+      const v = userGrid[r] ? userGrid[r][c] : 0;
       if (v) {
         cell.textContent = v;
         if (!givenMask[r][c]) cell.classList.add('user');
         if (!givenMask[r][c] && v !== solution[r][c]) cell.classList.add('error');
-      } else if (pencilGrid[r][c] && pencilGrid[r][c].size) {
+      } else if (pencilGrid[r] && pencilGrid[r][c] && pencilGrid[r][c].size) {
         const pencil = document.createElement('div');
         pencil.className = 'pencil';
         for (let n = 1; n <= 9; n++) {
@@ -1380,12 +1375,14 @@ function initSudoku() {
   checkEl.addEventListener('click', checkErrors);
   diffEl.addEventListener('change', newGame);
   newGame();
+  setStatus('✅ Sudoku พร้อมเล่น');
 }
 
 // ============================================================
 // 2048
 // ============================================================
 function initGame2048() {
+  setStatus('กำลัง init 2048...');
   const boardEl = $('g2048-board'), scoreEl = $('g2048-score'), statusEl = $('g2048-status');
   const resetEl = $('g2048-reset'), undoEl = $('g2048-undo');
   const SIZE = 4;
@@ -1506,12 +1503,14 @@ function initGame2048() {
   resetEl.addEventListener('click', init);
   undoEl.addEventListener('click', undo);
   init();
+  setStatus('✅ 2048 พร้อมเล่น');
 }
 
 // ============================================================
 // BLOCK BLAST
 // ============================================================
 function initBlockBlast() {
+  setStatus('กำลัง init Block Blast...');
   const gridEl = $('bb-grid'), trayEl = $('bb-tray'), scoreEl = $('bb-score');
   const statusEl = $('bb-status'), resetEl = $('bb-reset');
   const SIZE = 8;
@@ -1519,16 +1518,14 @@ function initBlockBlast() {
     [[0,0]],
     [[0,0],[0,1]], [[0,0],[1,0]],
     [[0,0],[0,1],[0,2]], [[0,0],[1,0],[2,0]],
-    [[0,0],[0,1],[0,2],[0,3]], [[0,0],[1,0],[2,0],[3,0]],
     [[0,0],[0,1],[1,0],[1,1]],
     [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],
     [[0,0],[1,0],[1,1]], [[0,1],[1,0],[1,1]],
     [[0,0],[0,1],[1,1]], [[0,0],[0,1],[1,0]],
-    [[0,0],[1,0],[2,0],[2,1]], [[0,0],[0,1],[0,2],[1,2]],
-    [[0,1],[0,2],[1,0],[1,1]], [[0,0],[0,1],[1,1],[1,2]]
+    [[0,0],[1,0],[2,0],[2,1]], [[0,0],[0,1],[0,2],[1,2]]
   ];
   const COLORS = ['#f87171','#fbbf24','#34d399','#60a5fa','#a78bfa','#f472b6','#22d3ee','#fb923c'];
-  let grid, tray, score, best, selectedIdx, hoverR = -1, hoverC = -1, combo = 0;
+  let grid, tray, score, best, selectedIdx, combo = 0;
 
   function emptyGrid() { return Array.from({length:SIZE}, () => Array(SIZE).fill(null)); }
   function randomPiece() {
@@ -1542,7 +1539,7 @@ function initBlockBlast() {
     score = 0; combo = 0; selectedIdx = null;
     best = +(localStorage.getItem('bb-best') || 0);
     render(); updateScore();
-    statusEl.textContent = 'เลือกชิ้น → คลิกช่องว่างเพื่อวาง';
+    statusEl.textContent = 'แตะชิ้น → แตะช่องว่างเพื่อวาง';
   }
   function updateScore() {
     scoreEl.textContent = `คะแนน: ${score} | สูงสุด: ${best}${combo > 1 ? ' | Combo x' + combo : ''}`;
@@ -1560,24 +1557,8 @@ function initBlockBlast() {
       const cell = document.createElement('div');
       cell.className = 'cell';
       if (grid[r][c]) { cell.classList.add('filled'); cell.style.background = grid[r][c]; }
-      cell.dataset.r = r; cell.dataset.c = c;
       cell.addEventListener('click', () => onCellClick(r, c));
-      cell.addEventListener('mouseenter', () => onCellHover(r, c));
-      cell.addEventListener('mouseleave', () => clearPreview());
       gridEl.appendChild(cell);
-    }
-    if (selectedIdx !== null && hoverR >= 0 && hoverC >= 0) {
-      const piece = tray[selectedIdx];
-      if (piece) {
-        const ok = canPlace(piece.shape, hoverR, hoverC);
-        for (const [dr, dc] of piece.shape) {
-          const rr = hoverR+dr, cc = hoverC+dc;
-          if (rr < SIZE && cc < SIZE) {
-            const idx = rr * SIZE + cc;
-            gridEl.children[idx].classList.add(ok ? 'preview-ok' : 'preview-bad');
-          }
-        }
-      }
     }
     trayEl.innerHTML = '';
     tray.forEach((piece, i) => {
@@ -1603,23 +1584,14 @@ function initBlockBlast() {
       }
       el.addEventListener('click', () => {
         selectedIdx = i;
-        statusEl.textContent = 'เลือกชิ้นแล้ว — คลิกช่องบนกระดานเพื่อวาง';
+        statusEl.textContent = `เลือกชิ้นแล้ว (${piece.shape.length} ช่อง) — แตะช่องบนกระดานเพื่อวาง`;
         render();
       });
       trayEl.appendChild(el);
     });
   }
-  function onCellHover(r, c) {
-    if (selectedIdx === null) return;
-    hoverR = r; hoverC = c;
-    render();
-  }
-  function clearPreview() {
-    hoverR = -1; hoverC = -1;
-    gridEl.querySelectorAll('.cell').forEach(c => c.classList.remove('preview-ok', 'preview-bad'));
-  }
   function onCellClick(r, c) {
-    if (selectedIdx === null) { statusEl.textContent = 'เลือกชิ้นจากถาดก่อน'; return; }
+    if (selectedIdx === null) { statusEl.textContent = 'แตะชิ้นจากถาดก่อน'; return; }
     const piece = tray[selectedIdx];
     if (!piece || !canPlace(piece.shape, r, c)) {
       statusEl.textContent = '❌ วางตรงนี้ไม่ได้';
@@ -1637,23 +1609,15 @@ function initBlockBlast() {
     }
     if (toClear.length) {
       const unique = [...new Map(toClear.map(x => [x.join(','), x])).values()];
-      for (const [rr,cc] of unique) {
-        const idx = rr * SIZE + cc;
-        gridEl.children[idx].classList.add('clearing');
-      }
       combo++;
       const gained = unique.length * 10 * combo;
       score += gained;
       statusEl.textContent = `🔥 ล้าง ${unique.length} ช่อง! +${gained} (Combo x${combo})`;
-      setTimeout(() => {
-        for (const [rr,cc] of unique) grid[rr][cc] = null;
-        render();
-      }, 300);
+      for (const [rr,cc] of unique) grid[rr][cc] = null;
     } else {
       combo = 0;
       score += piece.shape.length;
       statusEl.textContent = 'วางแล้ว';
-      render();
     }
     if (score > best) { best = score; localStorage.setItem('bb-best', best); }
     updateScore();
@@ -1661,12 +1625,13 @@ function initBlockBlast() {
       tray = [randomPiece(), randomPiece(), randomPiece()];
       combo = 0;
     }
+    render();
     setTimeout(() => {
       if (!canPlaceAny()) {
         statusEl.textContent = `💀 ไม่มีที่วางแล้ว! คะแนน ${score}`;
         setTimeout(() => { if (confirm('เกมจบ! เริ่มใหม่?')) init(); }, 100);
       }
-    }, 350);
+    }, 200);
   }
   function canPlaceAny() {
     for (const piece of tray) {
@@ -1679,12 +1644,14 @@ function initBlockBlast() {
   }
   resetEl.addEventListener('click', init);
   init();
+  setStatus('✅ Block Blast พร้อมเล่น');
 }
 
 // ============================================================
 // FRUIT NINJA
 // ============================================================
 function initFruitNinja() {
+  setStatus('กำลัง init Fruit Ninja...');
   const canvas = $('fn-canvas'), ctx = canvas.getContext('2d');
   const scoreEl = $('fn-score'), statusEl = $('fn-status'), resetEl = $('fn-reset');
   const FRUITS = [
@@ -1887,29 +1854,38 @@ function initFruitNinja() {
   }
   resetEl.addEventListener('click', start);
   start();
+  setStatus('✅ Fruit Ninja พร้อมเล่น');
 }
 
 // ============================================================
-// INIT ALL GAMES
+// BOOT — try-catch แยกเกม ถ้าเกมใด crash เกมอื่นยังเล่นได้
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
-  try {
-    initXO();
-    initBattleship();
-    initConnect4();
-    initMemory();
-    initRPS();
-    initChecker();
-    initChess();
-    initSudoku();
-    initGame2048();
-    initBlockBlast();
-    initFruitNinja();
-    console.log('✅ Multi-Game Hub loaded successfully');
-  } catch (err) {
-    const bar = document.getElementById('error-bar');
-    bar.style.display = 'block';
-    bar.textContent = '⚠️ เกิดข้อผิดพลาด: ' + err.message;
-    console.error(err);
+  const games = [
+    { name: 'XO', fn: initXO },
+    { name: 'Battleship', fn: initBattleship },
+    { name: 'Connect4', fn: initConnect4 },
+    { name: 'Memory', fn: initMemory },
+    { name: 'RPS', fn: initRPS },
+    { name: 'Checkers', fn: initChecker },
+    { name: 'Chess', fn: initChess },
+    { name: 'Sudoku', fn: initSudoku },
+    { name: '2048', fn: initGame2048 },
+    { name: 'Block Blast', fn: initBlockBlast },
+    { name: 'Fruit Ninja', fn: initFruitNinja },
+  ];
+  let ok = 0, fail = 0;
+  for (const g of games) {
+    try {
+      g.fn();
+      ok++;
+    } catch (err) {
+      fail++;
+      console.error(`[${g.name}] init failed:`, err);
+      setStatus(`❌ ${g.name} init ไม่สำเร็จ: ${err.message}`, true);
+    }
   }
+  setTimeout(() => {
+    setStatus(`✅ โหลดเสร็จ: ${ok} เกม / ล้มเหลว ${fail} เกม — คลิกเกมเพื่อเล่น`);
+  }, 300);
 });
