@@ -1,34 +1,29 @@
-# 🎮 Multi-Game Hub
+# 🎮 Multi-Game Hub Ultimate
 
-เว็บเกมรวม **11 เกม** ในหน้าเดียว เล่นได้ทั้งกับบอท (3 ระดับความยาก) และกับเพื่อน
+เว็บเกมรวม **11 เกม** ที่อัปเกรดให้สมจริงเหมือนเกมระดับมืออาชีพ
 
 ## เกมที่มี
 
-| เกม | โหมด | บอท |
-|------|------|------|
-| Tic-Tac-Toe | บอท/เพื่อน | ✅ ง่าย-กลาง-ยาก |
-| Battleship | บอท/เพื่อน | ✅ ง่าย-กลาง-ยาก |
-| Connect 4 | บอท/เพื่อน | ✅ ง่าย-กลาง-ยาก |
-| Memory Match | บอท/เพื่อน | ✅ ง่าย-กลาง-ยาก |
-| Rock Paper Scissors | บอท/เพื่อน | ✅ ง่าย-กลาง-ยาก |
-| Checkers | บอท/เพื่อน | ✅ ง่าย-กลาง-ยาก |
-| Mini Chess (6x6) | บอท/เพื่อน | ✅ ง่าย-กลาง-ยาก |
-| Sudoku | โหมดเดี่ยว | — (มีคำใบ้/ตรวจ) |
-| 2048 | โหมดเก็บแต้ม | — |
-| Block Blast | โหมดเก็บแต้ม | — |
-| Fruit Ninja | โหมดเก็บแต้ม | — |
+| เกม | โหมด | ฟีเจอร์เด่น |
+|-----|------|-------------|
+| Tic-Tac-Toe | บอท/เพื่อน | Minimax + Alpha-Beta |
+| Battleship | บอท/เพื่อน | ลากวางเรือ + AI Probability |
+| Connect 4 | บอท/เพื่อน | Minimax Depth 4 |
+| Memory Match | บอท/เพื่อน | 3D Flip + AI Memory |
+| Rock Paper Scissors | บอท/เพื่อน | Markov Chain |
+| Checkers | บอท/เพื่อน | บังคับ Multi-jump + Minimax |
+| Chess | บอท/เพื่อน | 8x8 มาตรฐาน + Castling + En Passant |
+| Sudoku | เดี่ยว | Pencil Mode + ไฮไลต์ |
+| 2048 | เดี่ยว | Undo + Animation |
+| Block Blast | เก็บแต้ม | Preview + Combo Multiplier |
+| Fruit Ninja | เก็บแต้ม | ปาดฟัน + Combo |
 
 ## วิธีรัน
 
-1. ดาวน์โหลด/โคลนโปรเจกต์
-2. เปิด `index.html` ในเบราว์เซอร์ได้เลย (ไม่ต้อง build)
+### ❗ สำคัญ: ต้องรันผ่าน local server (ไม่ใช่ double-click)
+เพราะใช้ ES Modules ซึ่งเบราว์เซอร์บล็อก `file://`
 
-## วิธี deploy บน GitHub Pages
-
+**วิธีที่ 1: Python**
 ```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/<USERNAME>/<REPO>.git
-git push -u origin main
+python -m http.server 8000
+# เปิด http://localhost:8000
