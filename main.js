@@ -9,6 +9,7 @@ import { initSudoku } from './games/sudoku.js';
 import { initGame2048 } from './games/game2048.js';
 import { initBlockBlast } from './games/blockblast.js';
 import { initFruitNinja } from './games/fruitninja.js';
+import { $ } from './utils.js';
 
 const GAMES = [
   { id:'xo', label:'❌⭕ XO' },
@@ -24,7 +25,7 @@ const GAMES = [
   { id:'fruitninja', label:'🍉 Fruit Ninja' },
 ];
 
-const nav = document.getElementById('nav');
+const nav = $('nav');
 GAMES.forEach((g, i) => {
   const b = document.createElement('button');
   b.className = 'nav-btn' + (i === 0 ? ' active' : '');
@@ -41,7 +42,7 @@ function switchGame(id) {
     p.classList.toggle('active', p.id === 'panel-' + id));
 }
 
-document.getElementById('panel-xo').classList.add('active');
+$('panel-xo').classList.add('active');
 
 initXO();
 initBattleship();
