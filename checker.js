@@ -1,96 +1,93 @@
-import { randomChoice } from '../ai.js';
+import { $, randomChoice } from '../utils.js';
 
 const N = 8;
 
 export function initChecker() {
-  const boardEl = document.getElementById('ck-board');
-  const statusEl = document.getElementById('ck-status');
-  const modeEl = document.getElementById('ck-mode');
-  const diffEl = document.getElementById('ck-diff');
-  const resetEl = document.getElementById('ck-reset');
-
-  let board, turn, selected, gameOver;
+  const boardEl = $('ck-board'), statusEl = $('ck-status');
+  const modeEl = $('ck-mode'), diffEl = $('ck-diff'), resetEl = $('ck-reset');
+  let board, turn, selected, gameOver, mustJumpFrom;
 
   function init() {
     board = Array.from({length:N}, () => Array(N).fill(null));
-    for (let r = 0; r < N; r++) {
-      for (let c = 0; c < N; c++) {
-        if ((r + c) % 2 === 1) {
-          if (r < 3) board[r][c] = { color:'black', king:false };
-          else if (r > 4) board[r][c] = { color:'red', king:false };
-        }
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if ((r + c) % 2 === 1) {
+        if (r < 3) board[r][c] = { color:'black', king:false };
+        else if (r > 4) board[r][c] = { color:'red', king:false };
       }
     }
-    turn = 'red';
-    selected = null;
-    gameOver = false;
-    statusEl.textContent = 'ตาของแดง';
+    turn = 'red'; selected = null; gameOver = false; mustJumpFrom = null;
+    statusEl.textContent = 'ตาของ 🔴 แดง';
     render();
   }
-
+  function cloneBoard(b) { return b.map(row => row.map(p => p ? {...p} : null)); }
   function render() {
     boardEl.innerHTML = '';
-    for (let r = 0; r < N; r++) {
-      for (let c = 0; c < N; c++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell ' + ((r + c) % 2 ? 'dark' : 'light');
-        if (selected && selected.r === r && selected.c === c) cell.classList.add('selected');
-        const p = board[r][c];
-        if (p) {
-          const piece = document.createElement('div');
-          piece.className = `piece ${p.color}${p.king ? ' king' : ''}`;
-          cell.appendChild(piece);
-        }
-        cell.addEventListener('click', () => onClick(r, c));
-        boardEl.appendChild(cell);
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell ' + ((r + c) % 2 ? 'dark' : 'light');
+      if (selected && selected.r === r && selected.c === c) cell.classList.add('selected');
+      if (mustJumpFrom && mustJumpFrom.r === r && mustJumpFrom.c === c) cell.classList.add('selected');
+      const p = board[r][c];
+      if (p) {
+        const piece = document.createElement('div');
+        piece.className = `piece ${p.color}${p.king ? ' king' : ''}`;
+        cell.appendChild(piece);
       }
+      cell.addEventListener('click', () => onClick(r, c));
+      boardEl.appendChild(cell);
     }
-    if (selected) {
-      const moves = getMoves(selected.r, selected.c);
-      for (const m of moves) {
-        const idx = m.tr * N + m.tc;
-        boardEl.children[idx].classList.add('valid');
-      }
+    if (selected || mustJumpFrom) {
+      const from = mustJumpFrom || selected;
+      const moves = getMoves(board, from.r, from.c);
+      for (const m of moves) boardEl.children[m.tr * N + m.tc].classList.add('valid');
     }
   }
-
   function onClick(r, c) {
     if (gameOver) return;
     if (modeEl.value === 'bot' && turn !== 'red') return;
+    if (mustJumpFrom) {
+      const moves = getMoves(board, mustJumpFrom.r, mustJumpFrom.c);
+      const mv = moves.find(m => m.tr === r && m.tc === c);
+      if (mv) { applyMove(mustJumpFrom.r, mustJumpFrom.c, mv); return; }
+      return;
+    }
     const p = board[r][c];
     if (selected) {
-      const moves = getMoves(selected.r, selected.c);
-      const move = moves.find(m => m.tr === r && m.tc === c);
-      if (move) { applyMove(selected.r, selected.c, move); return; }
+      const mv = getMoves(board, selected.r, selected.c).find(m => m.tr === r && m.tc === c);
+      if (mv) { applyMove(selected.r, selected.c, mv); return; }
     }
     if (p && p.color === turn) { selected = { r, c }; render(); }
     else { selected = null; render(); }
   }
-
-  function getMoves(r, c) {
-    const p = board[r][c];
+  function getMoves(b, r, c) {
+    const p = b[r][c];
     if (!p) return [];
     const dirs = [];
     if (p.king) dirs.push([-1,-1],[-1,1],[1,-1],[1,1]);
     else if (p.color === 'red') dirs.push([-1,-1],[-1,1]);
     else dirs.push([1,-1],[1,1]);
-    const moves = [], jumps = [];
+    const jumps = [], moves = [];
     for (const [dr, dc] of dirs) {
       const nr = r + dr, nc = c + dc;
       if (!inB(nr,nc)) continue;
-      if (!board[nr][nc]) moves.push({ tr:nr, tc:nc, jump:false });
-      else if (board[nr][nc].color !== p.color) {
+      if (!b[nr][nc]) moves.push({ tr:nr, tc:nc, jump:false });
+      else if (b[nr][nc].color !== p.color) {
         const jr = r + dr*2, jc = c + dc*2;
-        if (inB(jr,jc) && !board[jr][jc])
-          jumps.push({ tr:jr, tc:jc, jump:true, cr:nr, cc:nc });
+        if (inB(jr,jc) && !b[jr][jc]) jumps.push({ tr:jr, tc:jc, jump:true, cr:nr, cc:nc });
       }
     }
     if (jumps.length) return jumps;
     return moves;
   }
-
   function inB(r,c) { return r>=0 && r<N && c>=0 && c<N; }
-
+  function allMoves(b, color) {
+    const all = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const p = b[r][c];
+      if (p && p.color === color) for (const m of getMoves(b, r, c)) all.push({ r, c, m });
+    }
+    return all;
+  }
   function applyMove(r, c, move) {
     const p = board[r][c];
     board[r][c] = null;
@@ -101,55 +98,107 @@ export function initChecker() {
       if (p.color === 'black' && move.tr === N-1) p.king = true;
     }
     selected = null;
-    const oppColor = turn === 'red' ? 'black' : 'red';
-    if (!hasPieces(oppColor)) {
-      gameOver = true;
-      statusEl.textContent = turn === 'red' ? '🔴 แดงชนะ!' : '⚫ ดำชนะ!';
-      render(); return;
+    if (move.jump) {
+      const more = getMoves(board, move.tr, move.tc).filter(m => m.jump);
+      if (more.length) {
+        mustJumpFrom = { r: move.tr, c: move.tc };
+        statusEl.textContent = `ต้องกินต่อ! (${turn === 'red' ? '🔴' : '⚫'})`;
+        render(); return;
+      }
     }
-    turn = oppColor;
-    statusEl.textContent = `ตาของ ${turn === 'red' ? 'แดง' : 'ดำ'}`;
+    mustJumpFrom = null;
+    const opp = turn === 'red' ? 'black' : 'red';
+    if (!hasPieces(board, opp)) { gameOver = true; statusEl.textContent = turn === 'red' ? '🔴 แดงชนะ!' : '⚫ ดำชนะ!'; render(); return; }
+    turn = opp;
+    statusEl.textContent = `ตาของ ${turn === 'red' ? '🔴 แดง' : '⚫ ดำ'}`;
     render();
     if (modeEl.value === 'bot' && turn === 'black') setTimeout(botMove, 500);
   }
-
-  function hasPieces(color) {
-    for (const row of board) for (const p of row) if (p && p.color === color) return true;
+  function hasPieces(b, color) {
+    for (const row of b) for (const p of row) if (p && p.color === color) return true;
     return false;
   }
-
-  function allMovesFor(color) {
-    const all = [];
+  function evaluate(b, color) {
+    let s = 0;
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
-      const p = board[r][c];
-      if (p && p.color === color) {
-        for (const m of getMoves(r, c)) all.push({ r, c, m });
-      }
+      const p = b[r][c];
+      if (!p) continue;
+      let v = p.king ? 3 : 1;
+      if (p.color === color) s += v; else s -= v;
     }
-    return all;
+    return s;
   }
-
+  function minimax(b, depth, isMax, alpha, beta, color) {
+    if (depth === 0) return evaluate(b, color);
+    const moves = allMoves(b, isMax ? color : (color === 'red' ? 'black' : 'red'));
+    if (!moves.length) return isMax ? -1000 + depth : 1000 - depth;
+    if (isMax) {
+      let best = -Infinity;
+      for (const mv of moves) {
+        const nb = cloneBoard(b);
+        const p = nb[mv.r][mv.c];
+        nb[mv.r][mv.c] = null;
+        nb[mv.m.tr][mv.m.tc] = p;
+        if (mv.m.jump) nb[mv.m.cr][mv.m.cc] = null;
+        if (!p.king) {
+          if (p.color === 'red' && mv.m.tr === 0) p.king = true;
+          if (p.color === 'black' && mv.m.tr === N-1) p.king = true;
+        }
+        best = Math.max(best, minimax(nb, depth-1, false, alpha, beta, color));
+        alpha = Math.max(alpha, best);
+        if (beta <= alpha) break;
+      }
+      return best;
+    } else {
+      let best = Infinity;
+      for (const mv of moves) {
+        const nb = cloneBoard(b);
+        const p = nb[mv.r][mv.c];
+        nb[mv.r][mv.c] = null;
+        nb[mv.m.tr][mv.m.tc] = p;
+        if (mv.m.jump) nb[mv.m.cr][mv.m.cc] = null;
+        if (!p.king) {
+          if (p.color === 'red' && mv.m.tr === 0) p.king = true;
+          if (p.color === 'black' && mv.m.tr === N-1) p.king = true;
+        }
+        best = Math.min(best, minimax(nb, depth-1, true, alpha, beta, color));
+        beta = Math.min(beta, best);
+        if (beta <= alpha) break;
+      }
+      return best;
+    }
+  }
   function botMove() {
     if (gameOver) return;
     const diff = diffEl.value;
-    const all = allMovesFor('black');
+    const all = allMoves(board, 'black');
     if (!all.length) return;
     let choice;
     if (diff === 'easy') choice = randomChoice(all);
-    else {
+    else if (diff === 'medium') {
       const scored = all.map(mv => {
         let s = 0;
-        if (mv.m.jump) s += 5;
-        if (!board[mv.r][mv.c].king && mv.m.tr === N-1) s += 3;
+        if (mv.m.jump) s += 10;
+        if (!board[mv.r][mv.c].king && mv.m.tr === N-1) s += 5;
         return { mv, s };
       });
       scored.sort((a,b) => b.s - a.s);
-      if (diff === 'medium' && Math.random() < 0.5) choice = randomChoice(all);
-      else choice = scored[0].mv;
+      choice = Math.random() < 0.5 ? randomChoice(all) : scored[0].mv;
+    } else {
+      let best = -Infinity;
+      for (const mv of all) {
+        const nb = cloneBoard(board);
+        const p = nb[mv.r][mv.c];
+        nb[mv.r][mv.c] = null;
+        nb[mv.m.tr][mv.m.tc] = p;
+        if (mv.m.jump) nb[mv.m.cr][mv.m.cc] = null;
+        if (!p.king && p.color === 'black' && mv.m.tr === N-1) p.king = true;
+        const s = minimax(nb, 3, true, -Infinity, Infinity, 'black');
+        if (s > best) { best = s; choice = mv; }
+      }
     }
     applyMove(choice.r, choice.c, choice.m);
   }
-
   resetEl.addEventListener('click', init);
   modeEl.addEventListener('change', init);
   diffEl.addEventListener('change', init);
